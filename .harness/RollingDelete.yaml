@@ -29,9 +29,9 @@ pipeline:
                   identifier: K8sDelete_1
                   spec:
                     deleteResources:
-                      type: ManifestPath
+                      type: ReleaseName
                       spec:
-                        manifestPaths: <+input>
+                        deleteNamespace: false
                   timeout: 10m
             rollbackSteps: []
         tags: {}
