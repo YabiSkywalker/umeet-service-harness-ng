@@ -3,3 +3,33 @@ service:
   identifier: umeetservice
   orgIdentifier: default
   projectIdentifier: default_project
+  serviceDefinition:
+    spec:
+      manifests:
+        - manifest:
+            identifier: umeetservicek8smanifest
+            type: K8sManifest
+            spec:
+              store:
+                type: Github
+                spec:
+                  connectorRef: banderaserviceharnessng
+                  gitFetchType: Branch
+                  paths:
+                    - ./bandera-service-harness-ng
+                  repoName: umeet-service-harness-ng
+                  branch: main
+              skipResourceVersioning: false
+              enableDeclarativeRollback: false
+      artifacts:
+        primary:
+          primaryArtifactRef: <+input>
+          sources:
+            - spec:
+                connectorRef: account.harnessImage
+                imagePath: yabiskywalker/umeet-service-images
+                tag: <+input>
+                digest: ""
+              identifier: umeetservicedockerartifact
+              type: DockerRegistry
+    type: Kubernetes
