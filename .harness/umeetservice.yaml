@@ -1,0 +1,5 @@
+service:
+  name: umeet-service
+  identifier: umeetservice
+  orgIdentifier: default
+  projectIdentifier: default_project
