@@ -29,7 +29,7 @@ service:
           primaryArtifactRef: <+input>
           sources:
             - spec:
-                connectorRef: account.harnessImage
+                connectorRef: banderaservicedockerconnector
                 imagePath: yabiskywalker/umeet-service-images
                 tag: <+input>
                 digest: ""
