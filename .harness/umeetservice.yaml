@@ -21,7 +21,7 @@ service:
                   repoName: umeet-service-harness-ng
                   branch: main
               valuesPaths:
-                - Values.taml
+                - Values.yaml
               skipResourceVersioning: false
               enableDeclarativeRollback: false
       artifacts:
