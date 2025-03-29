@@ -16,9 +16,12 @@ service:
                   connectorRef: banderaserviceharnessng
                   gitFetchType: Branch
                   paths:
-                    - ./bandera-service-harness-ng
+                    - umeet-service-manifest.yaml
+                    - umeet-swagger-docs-service.yaml
                   repoName: umeet-service-harness-ng
                   branch: main
+              valuesPaths:
+                - Values.taml
               skipResourceVersioning: false
               enableDeclarativeRollback: false
       artifacts:
