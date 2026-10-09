@@ -6,8 +6,8 @@ pipeline:
   tags: {}
   stages:
     - stage:
-        name: delete
-        identifier: delete
+        name: d
+        identifier: d
         description: ""
         type: Deployment
         spec:
@@ -24,16 +24,64 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: K8sDelete
-                  name: K8sDelete_1
-                  identifier: K8sDelete_1
-                  spec:
-                    deleteResources:
-                      type: ReleaseName
-                      spec:
-                        deleteNamespace: false
+                  name: Stage Deployment
+                  identifier: stageDeployment
+                  type: K8sBlueGreenDeploy
                   timeout: 10m
-            rollbackSteps: []
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+              - step:
+                  type: Verify
+                  name: Verify
+                  identifier: Verify
+                  timeout: 2h
+                  spec:
+                    isMultiServicesOrEnvs: false
+                    type: Bluegreen
+                    monitoredService:
+                      type: Default
+                      spec: {}
+                    spec:
+                      sensitivity: HIGH
+                      duration: 5m
+                      failOnNoAnalysis: true
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - Verification
+                        action:
+                          type: ManualIntervention
+                          spec:
+                            timeout: 2h
+                            onTimeout:
+                              action:
+                                type: StageRollback
+                    - onFailure:
+                        errors:
+                          - Unknown
+                        action:
+                          type: ManualIntervention
+                          spec:
+                            timeout: 2h
+                            onTimeout:
+                              action:
+                                type: Ignore
+              - step:
+                  name: Swap primary with stage service
+                  identifier: bgSwapServices
+                  type: K8sBGSwapServices
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+            rollbackSteps:
+              - step:
+                  name: Swap primary with stage service
+                  identifier: rollbackBgSwapServices
+                  type: K8sBGSwapServices
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
         tags: {}
         failureStrategies:
           - onFailure:
