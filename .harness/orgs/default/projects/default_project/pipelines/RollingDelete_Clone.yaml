@@ -1,0 +1,123 @@
+pipeline:
+  projectIdentifier: default_project
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: d
+        identifier: d
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: <+input>
+            serviceInputs: <+input>
+          environment:
+            environmentRef: <+input>
+            deployToAll: false
+            environmentInputs: <+input>
+            serviceOverrideInputs: <+input>
+            infrastructureDefinitions: <+input>
+          execution:
+            steps:
+              - step:
+                  name: Stage Deployment
+                  identifier: stageDeployment
+                  type: K8sBlueGreenDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+              - step:
+                  type: Verify
+                  name: Verify
+                  identifier: Verify
+                  timeout: 2h
+                  spec:
+                    isMultiServicesOrEnvs: false
+                    type: Bluegreen
+                    monitoredService:
+                      type: Default
+                      spec: {}
+                    spec:
+                      sensitivity: HIGH
+                      duration: 5m
+                      failOnNoAnalysis: true
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - Verification
+                        action:
+                          type: ManualIntervention
+                          spec:
+                            timeout: 2h
+                            onTimeout:
+                              action:
+                                type: StageRollback
+                    - onFailure:
+                        errors:
+                          - Unknown
+                        action:
+                          type: ManualIntervention
+                          spec:
+                            timeout: 2h
+                            onTimeout:
+                              action:
+                                type: Ignore
+              - step:
+                  name: Swap primary with stage service
+                  identifier: bgSwapServices
+                  type: K8sBGSwapServices
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+            rollbackSteps:
+              - step:
+                  name: Swap primary with stage service
+                  identifier: rollbackBgSwapServices
+                  type: K8sBGSwapServices
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+        dependsOn: []
+    - stage:
+        name: ad
+        identifier: ad
+        tags: {}
+        template:
+          templateRef: zz_stage_tpl
+          versionLabel: v1
+          templateInputs:
+            type: Custom
+            spec:
+              execution:
+                steps:
+                  - step:
+                      identifier: Wait_1
+                      type: Wait
+                      spec:
+                        duration: <+input>
+        dependsOn:
+          - d
+  notificationRules:
+    - name: "n"
+      identifier: "n"
+      pipelineEvents:
+        - type: AllEvents
+      notificationMethod:
+        type: Email
+        spec:
+          userGroups:
+            - account._account_all_users
+          recipients: []
+      enabled: true
+  identifier: RollingDelete_Clone
+  name: RollingDelete - Clone
