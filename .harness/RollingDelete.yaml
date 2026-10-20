@@ -89,6 +89,23 @@ pipeline:
                 - AllErrors
               action:
                 type: StageRollback
+    - stage:
+        name: ad
+        identifier: ad
+        tags: {}
+        template:
+          templateRef: zz_stage_tpl
+          versionLabel: v1
+          templateInputs:
+            type: Custom
+            spec:
+              execution:
+                steps:
+                  - step:
+                      identifier: Wait_1
+                      type: Wait
+                      spec:
+                        duration: <+input>
   notificationRules:
     - name: "n"
       identifier: "n"
